@@ -1,14 +1,13 @@
 #include "plateau.h"
+#include "jeu.h"
 #include <stdio.h>
 #include <string.h>
 
 // Définition physique du plateau global
 Case plateau[8][8]; 
 
-/**
- * Initialise le plateau avec les pièces à leurs positions standards.
- */
-EMSCRIPTEN_KEEPALIVE
+
+// Initialise le plateau avec les pièces à leurs positions standards.
 void initialiserPlateau() {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
@@ -30,9 +29,8 @@ void initialiserPlateau() {
     }
 }
 
-/**
- * Affiche le plateau avec les coordonnées e4 d5 pour l'utilisateur.
- */
+
+// Affiche le plateau avec les coordonnées e4 d5 pour l'utilisateur.
 void afficherPlateau() {
     printf("\n    a b c d e f g h\n");
     printf("  +-----------------+\n");
@@ -54,28 +52,22 @@ void afficherPlateau() {
     printf("    a b c d e f g h\n\n");
 }
 
-/**
- * OUTILS POUR L'IA : Copier un état de plateau pour simulation
- */
-EMSCRIPTEN_KEEPALIVE
+
+// OUTILS POUR L'IA : Copier un état de plateau pour simulation
 void copier_plateau(Case source[8][8], Case destination[8][8]) {
     memcpy(destination, source, sizeof(Case) * 64);
 }
 
-/**
- * OUTILS POUR L'IA : Jouer un coup sans vérification ni affichage
- */
-EMSCRIPTEN_KEEPALIVE
+
+ //OUTILS POUR L'IA : Jouer un coup sans vérification ni affichage
 void jouer_coup_IA(int x1, int y1, int x2, int y2) {
     plateau[x2][y2] = plateau[x1][y1];
     plateau[x1][y1].type = VIDE;
     plateau[x1][y1].couleur = AUCUNE;
 }
 
-EMSCRIPTEN_KEEPALIVE
 // Dans plateau.c
-EMSCRIPTEN_KEEPALIVE
-const char* renvoyer_FEN() {
+const char* renvoyer_FEN(EtatPartie *partie) {
     static char fen[128]; 
     int pos = 0;
     for (int i = 0; i < 8; i++) {
@@ -91,7 +83,7 @@ const char* renvoyer_FEN() {
                          (plateau[i][j].type == PION) ? 'p' : 
                          (plateau[i][j].type == TOUR) ? 'r' :
                          (plateau[i][j].type == CAVALIER) ? 'n' : 
-                         (plateau[i][j].type == FOU) ? 'b';
+                         (plateau[i][j].type == FOU) ? 'b' : ' ';
                 if (plateau[i][j].couleur == BLANC) c -= 32; // Majuscule
                 fen[pos++] = c;
             }
@@ -99,10 +91,10 @@ const char* renvoyer_FEN() {
         if (vides > 0) fen[pos++] = vides + '0';
         if (i < 7) fen[pos++] = '/';
     }
+    fen[pos++] = ' ';
     if (partie->tour_joueur == BLANC) fen[pos++] = 'w';
-    else fen[++pos++] = 'b';
+    else fen[pos++] = 'b';
 
-    fen[pos++] = partie->can_castle;
     fen[pos] = '\0';
     return fen;
 }

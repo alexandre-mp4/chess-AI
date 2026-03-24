@@ -1,36 +1,54 @@
-# Nom de la sortie (doit finir par .js pour Emscripten)
-TARGET = echecs.js
+# Makefile pour le projet d'Échecs en C
+# Simple et efficace pour compiler le projet
 
-# Compilateur
-CC = emcc
+# Compilateur et options
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c99 -O2
+LDFLAGS = 
 
-# Options de compilation
-# -O2 : Optimisation pour la vitesse
-# -s WASM=1 : Force la génération de WebAssembly
-# -s MODULARIZE=1 : Permet d'utiliser .then() dans le JS
-# -s EXPORT_NAME="'Echecs'" : Nom de la fonction d'initialisation
-CFLAGS = -O2 -s WASM=1 -s MODULARIZE=1 -s EXPORT_NAME="'Echecs'"
+# Fichiers source
+SOURCES = main.c jeu.c plateau.c pieces.c ia.c
+OBJECTS = $(SOURCES:.c=.o)
+EXECUTABLE = chess
 
-# Fonctions à exporter (AJOUTE ICI TOUTES TES FONCTIONS C UTILISÉES EN JS)
-# Note : On ajoute un '_' devant le nom des fonctions C
-EXPORTS = -s EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' \
-          -s EXPORTED_FUNCTIONS='["_initialiserPlateau", "_initialiser_partie", "_jouer_coup_web", "_renvoyer_FEN", "_main"]'
+# Cibles principales
+all: $(EXECUTABLE)
 
-SRCS = jeu.c plateau.c pieces.c ia.c
-OBJS = $(SRCS:.c=.o)
+$(EXECUTABLE): $(OBJECTS)
+	$(CC) $(LDFLAGS) -o $@ $^
+	@echo "✓ Compilation réussie: $(EXECUTABLE)"
 
-all: $(TARGET)
-
-# L'édition de liens doit inclure les EXPORTS
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(EXPORTS) -o $(TARGET) $(OBJS)
-
+# Compilation des fichiers objet
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Nettoyer les fichiers compilés
 clean:
-	del /f *.o echecs.js echecs.wasm
+	rm -f $(OBJECTS)
+	@echo "✓ Fichiers objet supprimés"
 
-re: clean all
+# Nettoyer complètement (objet + exécutable)
+distclean: clean
+	rm -f $(EXECUTABLE)
+	@echo "✓ Tout supprimé (fichiers objet + exécutable)"
 
-.PHONY: all clean re
+# Rebuild: nettoyer puis recompiler
+rebuild: distclean all
+
+# Exécuter le programme
+run: $(EXECUTABLE)
+	./$(EXECUTABLE)
+
+# Aide
+help:
+	@echo "Makefile pour Chess-AI"
+	@echo "======================"
+	@echo "make          - Compiler le projet"
+	@echo "make clean    - Supprimer les fichiers .o"
+	@echo "make distclean - Supprimer tous les fichiers générés"
+	@echo "make rebuild  - Recompiler de zéro"
+	@echo "make run      - Compiler et exécuter"
+	@echo "make help     - Afficher cette aide"
+
+# Déclaration des cibles sans fichiers
+.PHONY: all clean distclean rebuild run help

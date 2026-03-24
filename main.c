@@ -3,9 +3,6 @@
 #include "ia.h"
 #include <stdio.h>
 
-/*
-Coucou, ceci est un test
-*/
 
 int main() {
     EtatPartie partie;
@@ -18,7 +15,9 @@ int main() {
     printf("1. Joueur vs Joueur\n");
     printf("2. Joueur vs IA\n");
     printf("Choix : ");
-    scanf("%d", &mode_jeu);
+    if (scanf("%d", &mode_jeu) != 1) {
+        mode_jeu = 1;  // Par défaut: mode 1v1
+    }
 
     while (!partie.est_fini) {
         afficherPlateau();
@@ -35,7 +34,7 @@ int main() {
                 jouer_meilleur_coup_IA(5);
                 partie.tour_joueur = BLANC; // On rend la main manuellement après l'IA
             } else {
-                // Mode 2 joueurs : l'humain joue les Noirs
+                // Mode 2 joueurs : les NOIRS sont aussi humains
                 if (executer_tour(&partie) != 0) {
                     printf("Mouvement impossible. Reessayez.\n");
                 }

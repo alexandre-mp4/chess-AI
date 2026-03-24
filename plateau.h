@@ -3,6 +3,9 @@
 
 #include "pieces.h" // Pour connaître le type 'Case' et 'Couleur'
 
+// Forward declaration pour éviter la dépendance circulaire
+typedef struct EtatPartie_t EtatPartie;
+
 // On déclare que le tableau existe ailleurs (dans plateau.c)
 extern Case plateau[8][8];
 
@@ -11,7 +14,7 @@ void initialiserPlateau();
 void afficherPlateau();
 void copier_plateau(Case source[8][8], Case destination[8][8]);
 void jouer_coup_IA(int x1, int y1, int x2, int y2);
-void renvoyer_FEN();
+const char* renvoyer_FEN(EtatPartie *partie);
 
 
 #endif

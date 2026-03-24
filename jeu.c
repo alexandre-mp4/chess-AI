@@ -1,26 +1,15 @@
 #include "jeu.h"
 #include <stdio.h>
 #include <string.h>
-#include <emscripten.h>
 
-/**
- * Initialise l'état de la structure de jeu et place les pièces sur le plateau.
- */
-EMSCRIPTEN_KEEPALIVE
+// Initialise l'état de la partie
 void initialiser_partie(EtatPartie *partie) {
     partie->tour_joueur = BLANC;
     partie->est_fini = 0;
     partie->en_echec = 0;
-    partie->can_castle = "KQkq"; // Toutes les possibilités de roque au début
-    partie->en_passant = -1; // Pas de prise en passant possible au début
-    partie->halmoven_clock = 0;
-    partie->fullmove_number = 1;
-    initialiserPlateau(); 
 }
 
-/**
- * Gère le tour complet : saisie algébrique (e2 e4), validation et mise à jour.
- */
+// Gère le tour complet : saisie algébrique (e2 e4), validation et mise à jour.
 int executer_tour(EtatPartie *partie) {
     char dep[10], arr[10];
     int x1, y1, x2, y2;
@@ -82,37 +71,8 @@ int executer_tour(EtatPartie *partie) {
 }
 
 /**
- * vérifie le coup joué par le web (x1,y1) -> (x2,y2) et met à jour l'état de la partie.
- * Contrairement à executer_tour, on suppose que la validation du format de la chaîne
- * renvoie 0 si le coup est invalide, 1 sinon. (ex: "e2 e4" -> x1=6,y1=4,x2=4,y2=4)
- * n'affiche jamais de message d'erreur, c'est à la partie JS de gérer ça.
- */
-EMSCRIPTEN_KEEPALIVE
-int jouer_coup_web(int x1, int y1, int x2, int y2, char p) {
-    // 1. Appliquer le coup de l'humain
-    // Note : On utilise ta logique existante tour_web
-    // Assure-toi que 'partie_globale' est bien ton pointeur d'état
-    int valide = tour_web(&partie_globale, x1, y1, x2, y2);
-    
-    if (!valide) return 0; // Le JS saura que le coup était illégal
-
-    // 2. Si le coup est valide, c'est au tour de l'IA
-    // On appelle ta fonction de recherche (ex: minimax)
-    Coup meilleur_coup = calculer_meilleur_coup(&partie_globale);
-    
-    // 3. Appliquer le coup de l'IA sur le plateau
-    appliquer_coup(&partie_globale, meilleur_coup);
-    
-    // 4. On change le tour pour revenir à l'humain
-    partie_globale.tour_joueur = BLANC; 
-    
-    return 1;
-}
-
-/**
  * Vérifie si le Roi de la couleur 'c' est menacé par une pièce adverse.
  */
-EMSCRIPTEN_KEEPALIVE
 int est_echec(Couleur c) {
     int roi_x = -1, roi_y = -1;
 
@@ -127,10 +87,11 @@ int est_echec(Couleur c) {
     }
 
     // On parcourt le plateau pour voir si une pièce ennemie peut prendre le roi
+    Couleur couleur_adversaire = (c == BLANC) ? NOIR : BLANC;
     for (int x = 0; x < 8; x++) {
         for (int y = 0; y < 8; y++) {
-            if (plateau[x][y].couleur != c && plateau[x][y].couleur != AUCUNE) {
-                if (est_mouvement_valide(x, y, roi_x, roi_y, c)) {
+            if (plateau[x][y].couleur == couleur_adversaire) {
+                if (est_mouvement_valide(x, y, roi_x, roi_y, couleur_adversaire)) {
                     return 1; 
                 }
             }
